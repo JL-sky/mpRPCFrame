@@ -1,0 +1,45 @@
+//声明protobuf版本
+syntax="proto3";//syntax语法
+
+//设置rpc作用域
+package mpRpc;
+//设置rpc方法选项
+option cc_generic_services=true;
+
+message resultErrcode
+{
+    int32 errcode=1;
+    bytes errMsg=2;
+}
+
+message LoginRequest
+{
+    bytes name=1;
+    bytes passwd=2;
+}
+message LoginResponse
+{
+    resultErrcode result=1;
+    bool success=2;
+}
+
+message RegisterRquest
+{
+    uint32 id=1;
+    bytes name=2;
+    bytes passwd=3;
+}
+
+message RegisterResponse
+{
+    resultErrcode result=1;
+    bool success=2;
+}
+
+
+//远程rpc方法
+service UserServiceRPC
+{
+    rpc login(LoginRequest) returns(LoginResponse);
+    rpc reg(RegisterRquest) returns(RegisterResponse);
+}

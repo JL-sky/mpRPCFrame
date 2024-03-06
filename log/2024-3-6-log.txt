@@ -1,0 +1,12 @@
+14-29-12=>info:service_name:UserServiceRPC
+14-29-12=>info:method_name:login
+14-29-12=>info:method_name:reg
+14-29-12=>info:rpcProvier server start!
+14-29-51=>info:service_name:UserServiceRPC
+14-29-51=>info:method_name:login
+14-29-51=>info:method_name:reg
+14-29-51=>info:rpcProvier server start!
+14-32-53=>info:service_name:UserServiceRPC
+14-32-53=>info:method_name:login
+14-32-53=>info:method_name:reg
+14-32-53=>info:rpcProvier server start!

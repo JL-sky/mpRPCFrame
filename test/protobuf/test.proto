@@ -1,0 +1,60 @@
+syntax="proto3";//声明protobuf版本
+package rpcProto;//声明了代码所在的命名空间
+
+//定义登录请求消息类型
+message loginRequest
+{
+    bytes name=1;//表示loginRequest消息的第一个字段
+    bytes passwd=2;//表示loginRequest消息的第二个字段
+}
+
+//封装响应消息
+message resultCode
+{
+    int32 errcode=1;
+    bytes errmsg=2;
+}
+
+//登录响应消息
+message loginResponse
+{
+    resultCode resMsg=1;
+    bool success=3;
+}
+
+//用户消息
+message User
+{
+    bytes name=1;
+    uint32 age=2;
+    enum Sex
+    {
+        man=0;
+        woman=1;
+    }
+    Sex sex=3;
+}
+
+//好友列表请求
+message friendListReq
+{
+    int32 userid=1;
+}
+
+//好友列表请求响应
+message friendListResponse
+{
+    resultCode resMsg=1;
+    // repeated关键字表示该消息是一个列表，而不是单个消息
+    repeated User friendList=2;
+}
+
+//定义选项，生成service服务类和rpc方法描述，默认不生成
+option cc_generic_services=true;
+
+//定义rpc方法
+service UserServiceRpc
+{
+    rpc Login(loginRequest) returns(loginResponse);
+    rpc GetFriendLists(friendListReq) returns(friendListResponse);
+}
