@@ -25,8 +25,16 @@ Logger::Logger()
                         "%d-%d-%d-log.txt",
                         nowtm->tm_year+1900,nowtm->tm_mon+1,nowtm->tm_mday);
 
-                std::string rootPath="/home/pcl/cProject/projects/myPro/mpRPC";
-                std::string logPath=rootPath+"/log/"+std::string(filename);
+                char path[1024];
+                if (getcwd(path, sizeof(path)) == NULL)
+                {
+                    LOG_ERR("Failed to get current working directory!");
+                    return false;
+                }
+                //获取项目根目录
+                std::string fullPath=std::string(path);
+                std::string curPath=fullPath.substr(0,fullPath.find_last_of("/")+1);
+                std::string logPath=curPath+"log/"+std::string(filename);
                 // std::cout<<"logPath:"<<logPath<<std::endl;
                 FILE* pf=fopen(logPath.c_str(),"a+");
                 if(!pf)
