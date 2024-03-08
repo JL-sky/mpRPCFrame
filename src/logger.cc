@@ -32,9 +32,14 @@ Logger::Logger()
                     return false;
                 }
                 //获取项目根目录
-                std::string fullPath=std::string(path);
-                std::string curPath=fullPath.substr(0,fullPath.find_last_of("/")+1);
-                std::string logPath=curPath+"log/"+std::string(filename);
+                std::string curPath=std::string(path);
+                int idx=curPath.find_last_of("/");
+                std::string str=curPath.substr(idx+1);
+                if(str!="mpRPCFrame")
+                {
+                    curPath=curPath.substr(0,idx);
+                }
+                std::string logPath=curPath+"/log/"+std::string(filename);
                 // std::cout<<"logPath:"<<logPath<<std::endl;
                 FILE* pf=fopen(logPath.c_str(),"a+");
                 if(!pf)
