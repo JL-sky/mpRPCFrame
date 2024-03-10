@@ -1,6 +1,24 @@
 # 基于linux下muduo、protobuf和zookeeper开发的rpc框架
 
+# 项目框架
+
+![](https://s3.bmp.ovh/imgs/2024/03/09/15c043806fc3faf3.png)
+
+
+
+![](https://s3.bmp.ovh/imgs/2024/03/09/258ab99ed5095b50.png)
+
+
+
+![](https://s3.bmp.ovh/imgs/2024/03/09/c0a41088810d69d1.png)
+
+
+
+![](https://s3.bmp.ovh/imgs/2024/03/11/5dd3484c65bdbea6.png)
+
 ## 项目描述
+
+
 
 - 基于protobuf和muduo封装rpc服务提供。实现远端rpc服务及方法的注册和基于回调的异步调用。
 - 封装zookeeper原生API实现rpc服务节点在zookeeper服务上的注册与分发。基于Zookeeper 的 wathcer 机制,动态监视节点刷新服务列表，编写策略解决 Zookeeper watcher 的一次性触发问题。
