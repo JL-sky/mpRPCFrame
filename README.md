@@ -1,6 +1,6 @@
 # 基于linux下muduo、protobuf和zookeeper开发的rpc框架
 
-# 项目框架
+## 项目框架
 
 ![](https://s3.bmp.ovh/imgs/2024/03/09/15c043806fc3faf3.png)
 
@@ -14,7 +14,9 @@
 
 
 
-![](https://s3.bmp.ovh/imgs/2024/03/11/5dd3484c65bdbea6.png)
+## 项目工作流程
+
+![](https://s3.bmp.ovh/imgs/2024/03/11/8f5cc196bfe62b94.png)
 
 ## 项目描述
 
