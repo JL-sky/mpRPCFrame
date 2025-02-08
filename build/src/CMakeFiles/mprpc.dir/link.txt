@@ -1,2 +1,0 @@
-/usr/bin/ar qc /home/pcl/projects/myPro/mpRPC/mpRPCFrame/lib/libmprpc.a CMakeFiles/mprpc.dir/logger.cc.o CMakeFiles/mprpc.dir/mprpcapplication.cc.o CMakeFiles/mprpc.dir/mprpcchannel.cc.o CMakeFiles/mprpc.dir/mprpcconf.cc.o CMakeFiles/mprpc.dir/mprpccontroller.cc.o CMakeFiles/mprpc.dir/rpcheader.pb.cc.o CMakeFiles/mprpc.dir/rpcprovider.cc.o CMakeFiles/mprpc.dir/zkutil.cc.o
-/usr/bin/ranlib /home/pcl/projects/myPro/mpRPC/mpRPCFrame/lib/libmprpc.a
