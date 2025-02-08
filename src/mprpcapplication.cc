@@ -28,19 +28,25 @@ void MpRpcApplication::Init(int argc,char** argv)
     //直到所有选项都被处理完毕，此时返回 -1。
     int c=0;
     string configFile;//配置文件路径（名称）
-    //opt框架解析命令行参数,冒号 : 用于指示选项i后需要一个参数
+    /*
+    opt框架解析命令行参数,冒号 : 用于指示选项i后需要一个参数
+    getopt 函数会遍历 argv 中的命令行参数，返回每一个选项字符
+    如果没有更多的选项，getopt 会返回 -1，循环结束
+    */
     while((c=getopt(argc,argv,"i:"))!=-1)
-    // while((c=getopt(argc,argv,"i"))!=-1)
     {
         switch (c)
         {
+            //optarg为选项i后的参数
             case 'i':
-                configFile=optarg;//optarg为选项i后的参数
+                configFile=optarg;
                 break;
+            // 如果遇到无效的选项（例如 -z，不在选项列表中），getopt 会返回 ?。
             case '?':
                 cout<<"invalid args!"<<endl;
                 showArgsHelp();
                 exit(EXIT_FAILURE);
+            // 如果某个选项后缺少必需的参数（例如 -i 后没有指定参数），getopt 会返回 :
             case ':':
                 showArgsHelp();
                 exit(EXIT_FAILURE);

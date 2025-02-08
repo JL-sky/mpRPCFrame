@@ -3,19 +3,35 @@
 #include "rpcheader.pb.h"
 #include "zkutil.h"
 
-//获取远程注册的对象信息（远程调用对象，远程调用对象的信息）
+//服务端需要注册（存储）服务（类），将来客户端进行对这些服务进行查询调用
+/*
+_serviceMap用于存储注册的rpc节点及其节点内的所有方法，其结构如下
+{
+serviceName:{
+                service,
+                {methodName:pmethodDesc}
+            },
+        ...
+serviceName:{
+                service,
+                {methodName:pmethodDesc}
+            }
+}
+*/
 void RpcProvider::notifyService(google::protobuf::Service*service)
 {
     // 获取服务对象的描述信息
     const google::protobuf::ServiceDescriptor* pserviceDesc=service->GetDescriptor();
     // 获取服务名称
     std::string serviceName=pserviceDesc->name();
+    // service_name:UserServiceRPC
     LOG_INFO("service_name:%s",serviceName.c_str());
+
     _serviceInfo serviceInfo;
     serviceInfo._service=service;
-
     // 获取服务中方法的数量
     const int methodCnt=pserviceDesc->method_count();
+    // 取出rpc服务节点下的所有方法
     for(int i=0;i<methodCnt;i++)
     {
         //获取指定服务方法的描述
@@ -84,16 +100,25 @@ void RpcProvider::connectionCallback(const muduo::net::TcpConnectionPtr& conn)
 }
 
 /*
-网络数据：
-headerSize(4B存储)+headerStr(serviceName+methodName+argsSize)+argsStr
+1.解析客户端要调用的服务名、方法名和参数
+2.服务端将根据客户端的服务名、方法名和参数在_serviceMap中查询服务端注册的服务和方法
+3.callMethod调用对应的服务方法（根据方法索引判断调用login还是reg），然后在调用结束之后回调sendRpcResponse
 */
 void RpcProvider::messageCallback(const muduo::net::TcpConnectionPtr& conn,
                             muduo::net::Buffer* buffer,
                             muduo::Timestamp time)
 {
-    /*从字符流中抽取远程服务及其方法名和参数信息*/
+/*=================== 解析客户端发送请求数据(buffer) =====================*/
+/*
+网络数据：
+headerSize(4B存储)+headerStr(serviceName+methodName+argsSize)+argsStr
+*/
+    /*将接受到的网络数据转换为string，
+    然后从字符流中抽取远程服务（UserServiceRPC）及其方法名（login）和参数信息
+    */
     std::string recv_buf=buffer->retrieveAllAsString();
-    // 从字符流读取前4个字节的数据，即headerSize
+    // 从recv_buf读取前4个字节的数据，并将其作为字节流复制到headerSize
+    // &headerSize，获取 headerSize 变量的地址，并将其类型转换为 char*，即字节指针
     uint32_t headerSize=0;
     recv_buf.copy((char*)&headerSize,4,0);
 
@@ -128,8 +153,10 @@ void RpcProvider::messageCallback(const muduo::net::TcpConnectionPtr& conn,
     std::cout<<"args:"<<args<<std::endl;
     std::cout<<"============================"<<std::endl;
 
+/*=================== 根据客户端的请求数据，找到服务端注册的服务对象、方法对象 =====================*/
 
     // 获取服务对象和方法对象
+    // 其中一个服务对应多个方法，首先根据服务名找到对应的服务，然后再根据该服务找到方法
     auto mit=_serviceMap.find(serviceName);
     if(mit==_serviceMap.end())
     {
@@ -137,6 +164,8 @@ void RpcProvider::messageCallback(const muduo::net::TcpConnectionPtr& conn,
         LOG_ERR("%s is not exist!",serviceName.c_str());
         return ;
     }
+    // 获取服务对象
+    google::protobuf::Service* pService=mit->second._service;
 
     auto it=mit->second._methodMap.find(methodName);
     if(it==mit->second._methodMap.end())
@@ -145,34 +174,38 @@ void RpcProvider::messageCallback(const muduo::net::TcpConnectionPtr& conn,
         LOG_ERR("%s:%s is not exist!",serviceName.c_str(),methodName.c_str());
         return;
     }
-
-    // 获取服务对象
-    google::protobuf::Service* pService=mit->second._service;
     // 获取服务对应下的方法对象
     const google::protobuf::MethodDescriptor* pMethod=it->second;
-    
-    // 生成rpc调用需要的request参与和response参数
+
+/*=================== 以下在框架上根据客户端rpc请求，调用当前rpc节点(UserService)上注册的方法(pMethod) =====================*/
     /*
     void login(::google::protobuf::RpcController* controller,
                        const ::mpRpc::LoginRequest* request,
                        ::mpRpc::LoginResponse* response,
                        ::google::protobuf::Closure* done)
     */
-    // 获取远程请求对象
+    // 生成rpc调用需要的request参数与和response参数
+    // 生成指定rpc方法的请求request对象
     google::protobuf::Message *request=pService->GetRequestPrototype(pMethod).New();
-    // 解析远程请求参数
+    // 生成rpc请求参数（将参数字符串重新封装为pb对象，供login函数调用）
     if(!request->ParseFromString(args))
     {
         // std::cout<<"request args parse error!"<<std::endl;
         LOG_ERR("request args parse error!");
         return;
     }
+    // 生成指定rpc方法的响应消息对象
     google::protobuf::Message *response=pService->GetResponsePrototype(pMethod).New();
-    //设置rpc响应调用的方法回调
     /*
     template <typename Class, typename Arg1, typename Arg2>
     inline Closure* NewCallback(Class* object, void (Class::*method)(Arg1, Arg2),
                                 Arg1 arg1, Arg2 arg2)
+    */
+    
+    /*
+    给下⾯的CallMethod的⽅法的调⽤
+    绑定⼀个Closure的自定义回调函数，设置服务端处理完客户端请求后要做的事情
+    在这里我们设置为将响应信息回传给客户端
     */
     google::protobuf::Closure *done=google::protobuf::NewCallback<RpcProvider,
                                 const muduo::net::TcpConnectionPtr&,
@@ -181,8 +214,42 @@ void RpcProvider::messageCallback(const muduo::net::TcpConnectionPtr& conn,
                                             &RpcProvider::sendRpcResponse,
                                             conn,
                                             response);
-    // rpc远程调用
+
+    /*
+    在框架上根据客户端rpc请求，调用当前rpc节点上注册的方法
+    new UserService().login(controller,request,done)
+    */
     pService->CallMethod(pMethod,nullptr,request,response,done);
+    /*
+void UserServiceRPC::CallMethod(const ::PROTOBUF_NAMESPACE_ID::MethodDescriptor* method,
+                             ::PROTOBUF_NAMESPACE_ID::RpcController* controller,
+                             const ::PROTOBUF_NAMESPACE_ID::Message* request,
+                             ::PROTOBUF_NAMESPACE_ID::Message* response,
+                             ::google::protobuf::Closure* done) {
+  GOOGLE_DCHECK_EQ(method->service(), file_level_service_descriptors_user_2eproto[0]);
+  switch(method->index()) {
+    case 0:
+      login(controller,
+             ::PROTOBUF_NAMESPACE_ID::internal::DownCast<const ::mpRpc::LoginRequest*>(
+                 request),
+             ::PROTOBUF_NAMESPACE_ID::internal::DownCast<::mpRpc::LoginResponse*>(
+                 response),
+             done);
+      break;
+    case 1:
+      reg(controller,
+             ::PROTOBUF_NAMESPACE_ID::internal::DownCast<const ::mpRpc::RegisterRquest*>(
+                 request),
+             ::PROTOBUF_NAMESPACE_ID::internal::DownCast<::mpRpc::RegisterResponse*>(
+                 response),
+             done);
+      break;
+    default:
+      GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
+      break;
+  }
+}
+    */
 }
 
 // Closure回调，用于序列化rpc的响应和网络发送
@@ -190,7 +257,8 @@ void RpcProvider::sendRpcResponse(const muduo::net::TcpConnectionPtr& conn,
                                     google::protobuf::Message* response)
 {
     std::string responseStr;
-    if(response->SerializeToString(&responseStr))//响应数据序列化
+    //将响应数据序列化为字符串
+    if(response->SerializeToString(&responseStr))
     {
         conn->send(responseStr);
     }

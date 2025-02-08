@@ -1,0 +1,8 @@
+13-26-46=>info:service_name:UserServiceRPC
+13-26-46=>info:method_name:login
+13-26-46=>info:method_name:reg
+13-26-46=>info:rpcProvier server start!
+13-29-26=>info:service_name:UserServiceRPC
+13-29-26=>info:method_name:login
+13-29-26=>info:method_name:reg
+13-29-26=>info:rpcProvier server start!

@@ -46,7 +46,15 @@ void MyRpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method,
     // 组织需要发送的字符串
     std::string sendRpcStr;
     //固定在sendRpcStr的前四个字节处写入headerSize信息
-    // sendRpcStr.insert(0,std::string((char *)&headerSize,4));
+    /*
+    std::string((char *)&headerSize, 4):
+    - 将内存地址 &headerSize 强制转换为 char* 类型，并创建了一个 std::string 对象。
+    - 其中第二个参数 4 表示 std::string 要从这个指针开始，读取 4 个字节的数据。
+        表示读取 headerSize 所占用的前 4 个字节并将其作为字符串来存储。
+    
+    因此sendRpcStr.insert()就表示:
+    将上面创建的字符串插入到 sendRpcStr 的开头（位置 0）
+    */
     sendRpcStr.insert(0,std::string((char *)&headerSize,4));
     sendRpcStr+=rpcHeaderStr;
     sendRpcStr+=argsStr;

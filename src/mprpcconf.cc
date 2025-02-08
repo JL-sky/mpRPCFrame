@@ -17,12 +17,15 @@ bool MpRpcConf::loadConfigFile(const char* configFile)
     while(!feof(fp))
     {
         char line[512]={0};
-        fgets(line,512,fp);//按行读取
+        //按行读取
+        fgets(line,512,fp);
         string read_buf(line);
-        trim(read_buf);//去除前后空格和多余的字符
+        //去除前后空格和多余的字符
+        trim(read_buf);
         
         size_t idx=read_buf.find("=");
-        if(idx==-1)//无效配置项
+        //无效配置项
+        if(idx==-1)
         {
             continue;
         }
@@ -52,7 +55,8 @@ void MpRpcConf::trim(string& str)
     {
         str.substr(idx);
     }else{
-        str.clear();//字符串全是空格，直接清空
+        //字符串全是空格，直接清空
+        str.clear();
         return;
     }
     //去除后空格

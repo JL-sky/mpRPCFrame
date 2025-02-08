@@ -13,17 +13,28 @@
 class RpcProvider
 {
 public:
-    //发布rpc方法
+    //在服务端注册（存储）rpc方法到_serviceMap
     void notifyService(google::protobuf::Service*service);
     //启动rpc服务,使用muduo库发布网络
     void run();
 private:
-    muduo::net::EventLoop _loop;
-    void connectionCallback(const muduo::net::TcpConnectionPtr&);
+    // 检测到连接或者断开事件时要做的事情
+    void connectionCallback(const muduo::net::TcpConnectionPtr& conn);
+    /*
+    用户数据处理
+    参数：
+        conn：tcp连接对象
+        buffer：缓冲区数据
+        time：接收到数据的时间信息  
+    */
     void messageCallback(const muduo::net::TcpConnectionPtr& conn,
                             muduo::net::Buffer* buffer,
-                            muduo::Timestamp time);
+                            muduo::Timestamp time
+                        );
+    // Closure回调，服务端处理完客户端的请求后的回调函数（将响应结果回传给客户端）
+    void sendRpcResponse(const muduo::net::TcpConnectionPtr& conn,google::protobuf::Message*);
 
+    muduo::net::EventLoop _loop;
     //服务类型信息
     typedef struct _serviceInfo
     {
@@ -35,6 +46,4 @@ private:
 
     //存储注册成功的服务对象和其服务方法的信息
     unordered_map<std::string,_serviceInfo> _serviceMap;
-    // Closure回调，用于序列化rpc的响应和网络发送
-    void sendRpcResponse(const muduo::net::TcpConnectionPtr& conn,google::protobuf::Message*);
 };
