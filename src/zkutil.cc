@@ -10,7 +10,8 @@ void global_watcher(zhandle_t *zh,int type,int state,const char *path,void *watc
 {
     if(type==ZOO_SESSION_EVENT)//回调的消息类型是和会话相关的消息类型
     {
-        if(state==ZOO_CONNECTED_STATE)//zkclient和zkserver链接成功
+        //zkclient和zkserver链接成功，释放锁
+        if(state==ZOO_CONNECTED_STATE)
         {
             sem_t *sem=(sem_t*)zoo_get_context(zh);
             sem_post(sem);//信号量资源加一
@@ -49,12 +50,16 @@ void ZkClient::start()
     watcher回调线程
   */
      _zhandle=zookeeper_init(zkHost.c_str(),global_watcher,30000,nullptr,nullptr,0);
-    if(nullptr==_zhandle)
+    // 此处仅判断_zhandle句柄的内存是否开辟成功，并不代表zk客户端与zk连接成功
+     if(nullptr==_zhandle)
     {
         std::cout<<"zookeeper_init error!"<<std::endl;
         exit(EXIT_FAILURE);
     }
 
+    // zk客户端（rpcServer）与zk的连接在另一个线程中进行
+    // 因此此处需要阻塞等待连接建立成功之后才能继续向下执行
+    // 当连接成功之后会执行global_watcher释放sem信号量
     sem_t sem;
     sem_init(&sem,0,0);//初始化资源为0
     zoo_set_context(_zhandle,&sem);//设置上下文，添加额外信息

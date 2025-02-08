@@ -1,0 +1,4 @@
+0-16-1=>info:service_name:UserServiceRPC
+0-16-1=>info:method_name:login
+0-16-1=>info:method_name:reg
+0-16-1=>info:rpcProvier server start!

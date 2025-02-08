@@ -2,6 +2,8 @@
     "files.associations": {
         "iostream": "cpp",
         "*.inc": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp"
     }
 }

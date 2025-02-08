@@ -17,4 +17,3 @@ public:
                         google::protobuf::Message* response,
                         std::string methodPath);
 };
-
