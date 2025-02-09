@@ -19,7 +19,6 @@ public:
         while(_queue.empty())
         {
             _qcondvariable.wait(lock);
-
         }
         T data=_queue.front();
         _queue.pop();
